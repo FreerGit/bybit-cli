@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/local/include",
+                "${workspaceFolder}/build/_deps/glaze-src/include"  // Adjust this path if needed
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",  // Ensure this matches your actual compiler
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "intelliSenseMode": "linux-gcc-x64"  // Ensure this is set for GCC
+        }
+    ],
+    "version": 4
+}
