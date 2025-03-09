@@ -1,43 +1,61 @@
+#include <cpr/cpr.h>
+
+#include <CLI/CLI.hpp>
 #include <glaze/glaze.hpp>
 #include <iostream>
 #include <string>
 
-// Define a struct for Bybit order
-struct BybitOrder {
+#include "glaze/json/json_t.hpp"
+
+struct Symbol {
     std::string symbol;
-    double price;
-    double qty;
-    std::string side;
 };
 
-// Register the struct with glaze
-template <>
-struct glz::meta<BybitOrder> {
-    using T = BybitOrder;
-    static constexpr auto value =
-        glz::object("symbol", &T::symbol, "price", &T::price, "qty", &T::qty,
-                    "side", &T::side);
+struct Symbols {
+    std::string category;
+    std::vector<Symbol> list;
 };
 
-int main() {
-    // Create an order
-    BybitOrder order = {"BTCUSDT", 45000.5, 0.1, "Buy"};
+template <typename T>
+struct Response {
+    int retCode;
+    std::string retMsg;
+    T result;
 
-    // Serialize to JSON
-    std::string buffer = glz::write_json(order).value_or("error");
-    std::cout << buffer << '\n';
-    // Deserialize from JSON
-    // BybitOrder new_order;
-    std::string json_str =
-        R"({"symbol":"btc","price":3.14,"qty":4.44,"side":"sell"})";
-
-    auto s = glz::read_json<BybitOrder>(json_str);
-
-    if (s) {
-        const auto new_order = s.value();
-        std::cout << "Parsed Struct: " << new_order.symbol << ", "
-                  << new_order.price << std::endl;
+    glz::error_ctx from_json(const std::string& buffer) {
+        return glz::read<glz::opts{.error_on_unknown_keys = false}>(*this,
+                                                                    buffer);
     }
 
+    std::string to_json() {
+        std::string json =
+            glz::write_json(*this).value_or("Error serializing JSON");
+        return glz::prettify_json(json);
+    }
+};
+
+constexpr std::string BASE_URL{"api.bybit.com"};
+
+int main(int argc, char** argv) {
+    CLI::App app{"Bybit cli"};
+
+    // defaults to funding
+    std::string watch{"funding"};
+    app.add_option("-w,--watch", watch, "What to watch, defaults to funding");
+
+    CLI11_PARSE(app, argc, argv);
+
+    assert(watch == "funding");
+
+    cpr::Response r = cpr::Get(
+        cpr::Url(BASE_URL + "/v5/market/tickers"),
+        cpr::Parameters{{"category", "linear"}, {"symbol", "BTCUSDT"}});
+
+    std::cout << r.status_code << r.text << std::endl;
+
+    Response<Symbols> symbols{};
+    symbols.from_json(r.text);
+
+    std::cout << symbols.to_json() << std::endl;
     return 0;
 }
