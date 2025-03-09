@@ -28,7 +28,8 @@ FetchContent_MakeAvailable(cpr)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(bybit-cli main.cpp)
+add_executable(bybit-cli src/main.cpp )
+
 
 target_include_directories(bybit-cli PRIVATE ${glaze_SOURCE_DIR}/include)
 target_link_libraries(bybit-cli PRIVATE CLI11::CLI11)
