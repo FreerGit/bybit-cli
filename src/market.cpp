@@ -1,5 +1,10 @@
+#include <charconv>
 #include <glaze/glaze.hpp>
+#include <iostream>
 #include <string>
+
+#include "glaze/core/context.hpp"
+#include "glaze/core/reflect.hpp"
 
 struct Symbol {
     std::string symbol;
@@ -23,9 +28,13 @@ struct Response {
     std::string retMsg;
     Market<T> result;
 
-    glz::error_ctx from_json(const std::string& buffer) {
-        return glz::read<glz::opts{.error_on_unknown_keys = false}>(*this,
-                                                                    buffer);
+    void from_json(const std::string& buffer) {
+        const glz::error_ctx e =
+            glz::read<glz::opts{.error_on_unknown_keys = false}>(*this, buffer);
+        if (e.ec != glz::error_code::none) {
+            std::cerr << "JSON: " << glz::format_error(e) << std::endl;
+            assert(false);
+        }
     }
 
     std::string to_json() {
