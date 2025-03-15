@@ -4,7 +4,7 @@
 #include <string>
 
 #include "funding.cpp"
-#include "stream.cpp"
+#include "liqs.cpp"
 
 auto main(int argc, char** argv) -> int {
   CLI::App app{"Bybit cli"};

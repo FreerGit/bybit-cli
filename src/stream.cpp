@@ -1,35 +1,39 @@
-#include <ixwebsocket/IXWebSocket.h>
 
+#include <glaze/glaze.hpp>
 #include <iostream>
+#include <string>
+#include <vector>
 
-const std::string sub =
-    R"({"op": "subscribe","args": ["allLiquidation.VIRTUALUSDT"]})";
+struct Subscribe {
+  std::string op = "subscribe";
+  std::vector<std::string> args;
+};
 
-class Stream {
- public:
-  Stream() = default;
+struct Liqudation {
+  std::string s;
+  std::string S;
+  std::string v;
+  std::string p;
+};
 
-  auto start() -> void {
-    ix::WebSocket webSocket;
-    webSocket.setUrl("wss://stream.bybit.com/v5/public/linear");
+template <typename T>
+struct Message {
+  std::string topic;
+  std::string type;
+  std::vector<T> data;
 
-    webSocket.setOnMessageCallback([&webSocket](
-                                       const ix::WebSocketMessagePtr& msg) {
-      if (msg->type == ix::WebSocketMessageType::Message) {
-        std::cout << "received message: " << msg->str << std::endl;
-      } else if (msg->type == ix::WebSocketMessageType::Open) {
-        std::cout << "Connection established" << std::endl;
-        webSocket.send(sub);
-      } else if (msg->type == ix::WebSocketMessageType::Error) {
-        std::cout << "Connection error: " << msg->errorInfo.reason << std::endl;
-      }
-    });
+  void from_json(const std::string& buffer) {
+    const glz::error_ctx e =
+        glz::read<glz::opts{.error_on_unknown_keys = false}>(*this, buffer);
+    if (e.ec != glz::error_code::none) {
+      std::cerr << "JSON: " << glz::format_error(e) << std::endl;
+      assert(false);
+    }
+  }
 
-    webSocket.start();
-
-    std::condition_variable cv;
-    std::mutex mtx;
-    std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock);  // wait indefinitely
+  std::string to_json() {
+    std::string json =
+        glz::write_json(*this).value_or("Error serializing JSON");
+    return glz::prettify_json(json);
   }
 };

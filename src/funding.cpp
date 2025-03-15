@@ -13,8 +13,6 @@
 
 #include "market.cpp"
 
-constexpr std::string BASE_URL{"api.bybit.com"};
-
 struct FundingInfo {
   std::string symbol;
   double funding_apr;

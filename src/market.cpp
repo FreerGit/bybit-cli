@@ -1,9 +1,10 @@
+#pragma once
+
 #include <glaze/glaze.hpp>
 #include <iostream>
 #include <string>
 
-#include "glaze/core/context.hpp"
-#include "glaze/core/reflect.hpp"
+constexpr std::string BASE_URL{"api.bybit.com"};
 
 struct Symbol {
   std::string symbol;
